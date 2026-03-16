@@ -38,11 +38,11 @@ class DomainInfo:
         """A2A 프로토콜용 slug 생성"""
         # 예: "도시계획 및 이용" -> "urban_planning"
         slug_map = {
-            "도시계획 및 이용": "urban_planning",
-            "개발행위": "development_activities",
-            "토지거래": "land_transactions",
-            "용도지역": "land_use_zones",
-            "도시개발": "urban_development"
+            "용도지역 및 건축규제": "zoning_regulation",
+            "도시계획": "urban_planning",
+            "건축기준": "building_standards",
+            "토지이용규제": "land_use_regulation",
+            "국토계획 총론": "national_land_planning",
         }
         return slug_map.get(self.domain_name, f"domain_{self.domain_id}")
 
@@ -193,40 +193,38 @@ class DomainManager:
         """
 
         try:
-            session = self.neo4j_client.get_session()
-            results = session.run(query)
-
             new_cache = {}
 
-            for record in results:
-                domain_id = record["domain_id"]
+            with self.neo4j_client.get_session() as session:
+                results = session.run(query)
 
-                # datetime 변환 (Neo4j에서 string으로 저장된 경우)
-                created_at = record.get("created_at")
-                updated_at = record.get("updated_at")
+                for record in results:
+                    domain_id = record["domain_id"]
 
-                if isinstance(created_at, str):
-                    created_at = datetime.fromisoformat(created_at)
-                elif created_at is None:
-                    created_at = datetime.now()
+                    # datetime 변환 (Neo4j에서 string으로 저장된 경우)
+                    created_at = record.get("created_at")
+                    updated_at = record.get("updated_at")
 
-                if isinstance(updated_at, str):
-                    updated_at = datetime.fromisoformat(updated_at)
-                elif updated_at is None:
-                    updated_at = datetime.now()
+                    if isinstance(created_at, str):
+                        created_at = datetime.fromisoformat(created_at)
+                    elif created_at is None:
+                        created_at = datetime.now()
 
-                domain = DomainInfo(
-                    domain_id=domain_id,
-                    domain_name=record["domain_name"],
-                    description=record.get("description", ""),
-                    node_count=record.get("node_count", 0),
-                    created_at=created_at,
-                    updated_at=updated_at
-                )
+                    if isinstance(updated_at, str):
+                        updated_at = datetime.fromisoformat(updated_at)
+                    elif updated_at is None:
+                        updated_at = datetime.now()
 
-                new_cache[domain_id] = domain
+                    domain = DomainInfo(
+                        domain_id=domain_id,
+                        domain_name=record["domain_name"],
+                        description=record.get("description", ""),
+                        node_count=record.get("node_count", 0),
+                        created_at=created_at,
+                        updated_at=updated_at
+                    )
 
-            session.close()
+                    new_cache[domain_id] = domain
 
             self._domains_cache = new_cache
             self._last_refresh = datetime.now()

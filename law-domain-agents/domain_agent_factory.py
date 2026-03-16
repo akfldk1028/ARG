@@ -60,7 +60,7 @@ class LawDomainAgent:
             openai_client=self.openai_client,
             domain_id=domain_info.domain_id,
             domain_name=domain_info.domain_name,
-            rne_threshold=0.65,  # RNE 유사도 임계값 (낮춤: 더 많은 결과)
+            rne_threshold=0.35,  # RNE 유사도 임계값 (0.35: 항 단위 이웃 적합)
             ine_k=10  # INE top-k 결과
         )
 

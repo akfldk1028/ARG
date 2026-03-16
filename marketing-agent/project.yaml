@@ -1,0 +1,56 @@
+# Marketing Agent — Project Configuration
+# Copy this file to project.yaml and customize for your project.
+
+product:
+  name: "ACE Platform"
+  tagline: "AI agent collaboration engine for land regulation analysis"
+  website: "https://github.com/your-org/25_ACE"
+  docs_url: ""
+  github_url: ""
+  category: "developer-tools"
+
+audience:
+  primary: "developers building multi-agent systems"
+  secondary: "real estate professionals needing regulatory analysis"
+  pain_points:
+    - "Complex land regulation lookup is manual and error-prone"
+    - "Multi-agent orchestration lacks standard tooling"
+  value_props:
+    - "Automated land regulation analysis with 41 regulation types"
+    - "Multi-agent collaboration via A2A protocol"
+
+brand:
+  tone: "technical"
+  language: "en"
+  emoji_policy: "none"
+
+social:
+  twitter:
+    handle: ""
+    enabled: false
+  linkedin:
+    company_page: ""
+    enabled: false
+  reddit:
+    subreddits: []
+    enabled: false
+
+seo:
+  primary_keywords:
+    - "multi-agent orchestration"
+    - "land regulation analysis"
+    - "AI agent collaboration"
+  competitor_domains: []
+  target_monthly_posts: 4
+
+schedule:
+  content_days: [monday, wednesday]
+  social_days: [monday, wednesday, friday]
+  report_day: friday
+  timezone: "Asia/Seoul"
+  cron_interval_hours: 3
+
+integrations:
+  cms: null
+  analytics: null
+  slack_webhook: null

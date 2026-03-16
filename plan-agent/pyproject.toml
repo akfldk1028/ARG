@@ -1,0 +1,15 @@
+[project]
+name = "plan-agent"
+version = "0.1.0"
+description = "A2A Plan Agent using Claude Code CLI in plan mode"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "python-dotenv>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

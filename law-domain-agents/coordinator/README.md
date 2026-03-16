@@ -1,80 +1,30 @@
 # QueryCoordinator Agent
 
-**Status**: To be implemented
+**Status**: 미구현 (Phase 5에서 구현 예정)
 
 ## Purpose
 
-The QueryCoordinator is the central orchestrator that:
-1. Receives user queries
-2. Routes them to appropriate domain agents
-3. Aggregates responses from multiple domains
-4. Synthesizes final answer
+다중 도메인 에이전트 간 쿼리 라우팅 및 응답 종합. 현재 `server.py`가 단일 도메인(용도지역)으로 자동 라우팅하므로 coordinator는 불필요.
 
-## Architecture
+Phase 5 (Agent 협업)에서 건축관련법 전체 적재 후 다중 도메인 병렬 검색 시 필요.
+
+## 예상 Architecture
 
 ```
 User Query
     ↓
-QueryCoordinator (port 8010)
+QueryCoordinator
+    ├─> Domain 1: 용도지역 (land_use_zones)
+    ├─> Domain 2: 개발행위 (development_activities)
+    ├─> Domain 3: 토지거래 (land_transactions)
+    ├─> Domain 4: 도시계획 (urban_planning)
+    └─> Domain 5: 도시개발 (urban_development)
     ↓
-    ├─> Domain 1 Agent (8011) ──┐
-    ├─> Domain 2 Agent (8012) ──┤
-    ├─> Domain 3 Agent (8013) ──┼─> Parallel Search
-    ├─> Domain 4 Agent (8014) ──┤
-    └─> Domain 5 Agent (8015) ──┘
-    ↓
-Synthesis & Ranking
+RRF Merging + Synthesis
     ↓
 Final Response
 ```
 
-## Implementation Plan
+## 현재 대안
 
-### Phase 1: Basic Routing
-- Broadcast query to all domain agents
-- Collect responses
-- Simple aggregation
-
-### Phase 2: Intelligent Routing
-- Query analysis
-- Selective routing to relevant domains
-- Domain relevance scoring
-
-### Phase 3: Advanced Synthesis
-- Multi-agent collaboration (A2A exchange)
-- Graph-based result merging
-- Confidence scoring
-
-### Phase 4: Learning
-- Query history
-- Domain performance tracking
-- Adaptive routing
-
-## Files to Create
-
-```
-coordinator/
-├── __init__.py
-├── graph.py              # LangGraph workflow
-├── server.py             # FastAPI A2A server
-├── routing_logic.py      # Domain selection
-├── synthesis_logic.py    # Response aggregation
-├── config.py             # Configuration
-└── a2a_client.py         # Client for domain agents
-```
-
-## Integration Points
-
-### With Domain Agents
-- A2A protocol for communication
-- Agent discovery via agent cards
-- Message routing and context management
-
-### With Backend
-- Shared Neo4j database
-- Shared embedding models
-- Common data structures
-
-## Reference
-
-Based on `backend/agents/law/agent_manager.py` (AgentManager class)
+`law_search_engine.py`의 5-stage hybrid search가 단일 도메인 내에서 exact + vector + relationship + RNE + RRF를 모두 처리.

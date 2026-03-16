@@ -134,7 +134,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -550,20 +550,21 @@ async def rest_api_search(
     start_time = time.time()
 
     try:
-        # 첫 번째 도메인 선택 (TODO: 자동 라우팅 로직 추가)
+        # 전체 도메인 검색 (domain_id=None → 도메인 필터 없이 모든 HANG 검색)
         domains = dm.get_all_domains()
         if not domains:
             raise HTTPException(status_code=500, detail="No domains available")
 
+        # 첫 번째 도메인의 에이전트에서 search_engine 가져오되, domain_id=None로 검색
         domain = domains[0]
-
-        # 에이전트 가져오기
         agent = af.get_agent(domain.domain_id)
         if not agent:
             agent = af.create_agent(domain)
 
-        # 검색 엔진 직접 호출 (LangGraph 우회)
-        search_results = agent.search_engine.search(request.query, top_k=request.limit)
+        # domain_id를 파라미터로 전달하여 thread-safe 전체 검색
+        search_results = agent.search_engine.search(
+            request.query, top_k=request.limit, domain_id_override=""
+        )
 
         # 결과 변환
         articles = []
@@ -590,8 +591,8 @@ async def rest_api_search(
         return LawSearchResponse(
             results=articles,
             stats=stats,
-            domain_id=domain.domain_id,
-            domain_name=domain.domain_name,
+            domain_id="all",
+            domain_name="전체 검색",
             response_time=response_time
         )
 

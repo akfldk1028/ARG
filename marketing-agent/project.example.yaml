@@ -1,0 +1,64 @@
+# Marketing Agent — Project Configuration
+# Copy this file to projects/{your-project-slug}.yaml and customize.
+# Or for single-project use: copy to project.yaml in the root.
+#
+# Multi-project setup:
+#   ./scripts/init.sh "My SaaS App"           → creates projects/my-saas-app.yaml
+#   ./scripts/init.sh "CLI Tool" --from-repo . → auto-fills from package.json/pyproject.toml
+#
+# Each agent will process ALL projects in projects/ unless PROJECT_SLUG env is set.
+
+product:
+  name: "My Product"
+  tagline: "One-line description of what it does"
+  website: "https://example.com"
+  docs_url: "https://docs.example.com"
+  github_url: "https://github.com/org/repo"
+  category: "developer-tools"  # developer-tools | saas | consumer | enterprise | open-source
+
+audience:
+  primary: "developers"
+  secondary: "technical managers"
+  pain_points:
+    - "Problem your product solves #1"
+    - "Problem your product solves #2"
+  value_props:
+    - "Key benefit #1"
+    - "Key benefit #2"
+
+brand:
+  tone: "professional-friendly"  # professional-friendly | casual | technical | playful
+  language: "en"
+  emoji_policy: "minimal"  # none | minimal | liberal
+
+social:
+  twitter:
+    handle: "@yourhandle"
+    enabled: false
+  linkedin:
+    company_page: "your-company-slug"
+    enabled: false
+  reddit:
+    subreddits: ["r/relevant_sub"]
+    enabled: false
+
+seo:
+  primary_keywords:
+    - "keyword1"
+    - "keyword2"
+  competitor_domains:
+    - "competitor1.com"
+    - "competitor2.com"
+  target_monthly_posts: 8
+
+schedule:
+  content_days: [monday, wednesday, friday]
+  social_days: [monday, tuesday, wednesday, thursday, friday]
+  report_day: friday
+  timezone: "UTC"
+  cron_interval_hours: 3
+
+integrations:
+  cms: null          # "ghost" | "wordpress" | "notion" | null (file-only)
+  analytics: null    # "posthog" | "ga4" | "plausible" | null
+  slack_webhook: null

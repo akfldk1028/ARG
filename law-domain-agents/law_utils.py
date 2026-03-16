@@ -26,12 +26,12 @@ def parse_hang_id(hang_id: str) -> Dict[str, str]:
     law_part = parts[0] if len(parts) > 0 else ''
     law_type = ''
 
-    if '법률' in law_part:
-        law_type = '법률'
-    elif '시행령' in law_part:
-        law_type = '시행령'
-    elif '시행규칙' in law_part:
+    if '(시행규칙)' in law_part:
         law_type = '시행규칙'
+    elif '(시행령)' in law_part:
+        law_type = '시행령'
+    elif '(법률)' in law_part:
+        law_type = '법률'
 
     # 괄호와 법률 타입 제거
     law_name = law_part.replace(f'({law_type})', '').strip()

@@ -1,0 +1,40 @@
+.env
+__pycache__/
+*.pyc
+
+# Per-project output (generated, ephemeral)
+output/*/content/*
+output/*/social/*
+output/*/reports/*
+output/*/images/*
+output/*/keywords/*
+output/*/audits/*
+output/*/briefs/*
+!output/*/.gitkeep
+!output/*/**/.gitkeep
+
+# Legacy flat output (backward compat)
+output/content/*
+output/social/*
+output/reports/*
+output/images/*
+!output/content/.gitkeep
+!output/social/.gitkeep
+!output/reports/.gitkeep
+!output/images/.gitkeep
+
+# Per-project agent memory
+.claude/agent-memory/*/*.md
+!.claude/agent-memory/.gitkeep
+!.claude/agent-memory/*/.gitkeep
+
+# Legacy flat memory
+.claude/agent-memory/*.md
+!.claude/agent-memory/.gitkeep
+
+# Actual project configs (contain product details)
+projects/*.yaml
+!projects/.gitkeep
+
+# Cron log
+schedules/cron-log.md

@@ -1,1 +1,121 @@
-﻿law-domain-agents/nul
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Environments (virtual envs)
+.env
+.envrc
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude temp files
+.claude/
+nul
+null
+tmpclaude-*
+
+# LangGraph specific
+.langgraph_api/
+memory.db
+*.db
+*.db-journal
+*.pckl
+
+# Lock files (chromadb etc)
+*.lock
+!package-lock.json
+!pnpm-lock.yaml
+
+# Media files (generated)
+*.mp3
+*.mp4
+*.wav
+*.avi
+*.mov
+
+# Agent specific
+chunks/
+*.txt_part_*
+
+# Generated images (test/temp)
+test_screenshots/
+test_output/
+*.jpg
+*.png
+!**/assets/*.png
+!**/assets/*.jpg
+
+# Playwright MCP
+.playwright-mcp/
+
+# Node
+node_modules/

@@ -1,185 +1,141 @@
-# Law Domain Agents - A2A Protocol Implementation
+# Law Domain Agents
 
-Multi-agent law search system using Agent-to-Agent (A2A) protocol.
+한국 법률 검색 엔진. FastAPI + Neo4j 기반 하이브리드 검색 (exact match + vector + relationship + RNE expansion).
 
 ## Architecture
 
 ```
-QueryCoordinator (port 8010)
-    ├─> Domain 1: 도시계획 및 이용 (port 8011)
-    ├─> Domain 2: 토지이용 및 보상 (port 8012)
-    ├─> Domain 3: 토지등 및 계획 (port 8013)
-    ├─> Domain 4: 도시계획 및 환경관리 (port 8014)
-    └─> Domain 5: 토지이용 및 보상절차 (port 8015)
+server.py (FastAPI, port 8011)
+  ├── REST API: /api/search, /api/domain/{id}/search, /api/domains, /api/health
+  ├── A2A Protocol: /.well-known/agent-card/{slug}.json, /messages/{slug}
+  │
+  ├── law_search_engine.py    # 5-stage hybrid search + RRF merging
+  ├── domain_manager.py       # Neo4j domain loader (DomainInfo, DomainManager)
+  ├── domain_agent_factory.py # LangGraph agent wrapper (LawDomainAgent)
+  ├── law_utils.py            # Result enrichment (law_name, law_type, article)
+  └── shared/
+      ├── neo4j_client.py     # Singleton Neo4j driver (bolt://localhost:7687)
+      └── openai_client.py    # OpenAI text-embedding-3-large (3072-dim)
 ```
-
-## Features
-
-- **A2A Protocol**: JSON-RPC 2.0 compliant agent-to-agent communication
-- **LangGraph Workflows**: Stateful agent workflows with message history
-- **Neo4j Graph Search**: Law article search via graph database
-- **Semantic Search**: KR-SBERT + OpenAI embeddings
-- **RNE Graph Expansion**: Relationship-aware node embedding
 
 ## Quick Start
 
-### 1. Install Dependencies
-
 ```bash
-cd agent/law-domain-agents
-uv venv
-uv pip install -r requirements.txt
+cd AG/agent/law-domain-agents
+cp .env.example .env   # NEO4J_PASSWORD, OPENAI_API_KEY 설정
+
+# 서버 실행
+.venv/Scripts/python server.py   # http://localhost:8011
+
+# 헬스체크
+curl http://localhost:8011/api/health
 ```
 
-### 2. Configure Environment
+## REST API
 
-```bash
-cp .env.example .env
-# Edit .env with your Neo4j and OpenAI credentials
-```
+| Method | Path | Body | Description |
+|--------|------|------|-------------|
+| POST | `/api/search` | `{query, limit}` | 자동 도메인 라우팅 검색 |
+| POST | `/api/domain/{id}/search` | `{query, limit}` | 도메인 지정 검색 |
+| GET | `/api/domains` | - | 도메인 목록 |
+| GET | `/api/health` | - | 상태 확인 |
 
-### 3. Run Domain Agent
-
-```bash
-# Terminal 1: Domain 1 Agent
-uv run uvicorn domain-1-agent.server:app --port 8011
-
-# Test
-curl http://localhost:8011/.well-known/agent-card.json
-```
-
-### 4. Test Agent
-
-```bash
-# Test health endpoint
-curl http://localhost:8011/health
-
-# Test message endpoint (A2A protocol)
-curl -X POST http://localhost:8011/messages \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "message/send",
-    "params": {
-      "message": {
-        "messageId": "test-123",
-        "contextId": "test-context",
-        "role": "user",
-        "parts": [
-          {"kind": "text", "text": "17조에 대해 알려주세요"}
-        ]
-      }
-    },
-    "id": "req-1"
-  }'
-```
-
-## Project Structure
-
-```
-law-domain-agents/
-├── README.md                    # This file
-├── pyproject.toml               # Project dependencies (uv)
-├── .env.example                 # Environment template
-├── requirements.txt             # Pip dependencies (generated from pyproject.toml)
-│
-├── domain-1-agent/              # Domain 1: 도시계획 및 이용
-│   ├── __init__.py
-│   ├── graph.py                 # LangGraph workflow
-│   ├── server.py                # FastAPI A2A server
-│   ├── domain_logic.py          # Search logic (Neo4j + RNE)
-│   └── config.py                # Configuration
-│
-├── coordinator/                 # QueryCoordinator (future)
-│   └── (to be added later)
-│
-└── shared/                      # Shared utilities
-    ├── __init__.py
-    ├── neo4j_client.py          # Neo4j connection
-    └── openai_client.py         # OpenAI connection
-```
-
-## Development
-
-### Adding New Domain Agent
-
-1. Copy `domain-1-agent/` to `domain-N-agent/`
-2. Update domain configuration in `.env`
-3. Modify port and domain name in `config.py`
-4. Update domain-specific logic in `domain_logic.py`
-
-### Running Multiple Agents
-
-```bash
-# Terminal 1: Domain 1
-uv run uvicorn domain-1-agent.server:app --port 8011
-
-# Terminal 2: Domain 2
-uv run uvicorn domain-2-agent.server:app --port 8012
-
-# Terminal 3: Coordinator
-uv run uvicorn coordinator.server:app --port 8010
-```
-
-## A2A Protocol Compliance
-
-### Agent Card Endpoint
-
-```
-GET /.well-known/agent-card.json
-```
-
-Returns agent metadata according to A2A spec.
-
-### Message Endpoint
-
-```
-POST /messages
-```
-
-Accepts JSON-RPC 2.0 formatted messages:
+### Response Format
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "method": "message/send",
-  "params": {
-    "message": {
-      "messageId": "uuid",
-      "contextId": "uuid",
-      "role": "user",
-      "parts": [{"kind": "text", "text": "query"}]
-    }
-  },
-  "id": "request-id"
+  "results": [{
+    "hang_id": "국토의 계획 및 이용에 관한 법률(시행령)::제12장::제4절::제71조::①",
+    "content": "법 제76조제1항에 따른 용도지역안에서의 건축물의...",
+    "unit_path": "제12장_제4절_제71조_①",
+    "similarity": 0.884,
+    "stages": ["vector_search"],
+    "law_name": "국토의 계획 및 이용에 관한 법률",
+    "law_type": "시행령",
+    "article": "제71조"
+  }],
+  "stats": {"total": 10, "vector_count": 5, "relationship_count": 3, "graph_expansion_count": 2},
+  "domain_id": "land_use_zones",
+  "domain_name": "용도지역",
+  "response_time": 342
 }
 ```
 
-## Integration with Backend
+## Search Algorithm (5-stage)
 
-This agent system is designed to work alongside the existing Django backend:
+1. **Exact Match**: `r'제?(\d+)조'` → Cypher `h.full_id CONTAINS`
+2. **Vector Search (INE)**: OpenAI 3072-dim → Neo4j `hang_embedding_index`, top-k=10
+3. **Relationship Search**: Edge embedding similarity >= 0.65 (`contains_embedding` index, step5 필요)
+4. **RNE Expansion**: Top 3 → `(start)<-[:CONTAINS]-(jo:JO)-[:CONTAINS]->(neighbor:HANG)` → cosine >= 0.65
+5. **RRF Merging**: Reciprocal Rank Fusion (k=60), 중복 제거
 
-- **Backend**: `D:\Data\11_Backend\01_ARR\backend\` - Data pipeline, Neo4j setup
-- **Agents**: `D:\Data\11_Backend\01_ARR\agent\law-domain-agents\` - A2A agents
+## Neo4j Schema
 
-Both systems share the same Neo4j database but are independently deployable.
+```
+LAW (3개: 법률, 시행령, 시행규칙)
+ └── JANG (장) → JEOL (절) → JO (조, 1053개)
+                                └── HANG (항, 1591개) ← 검색 대상, 3072-dim embedding
+                                     └── HO (호) → MOK (목)
+Domain (5개) ←[:BELONGS_TO_DOMAIN]─ HANG
+```
 
-## Project Status
+- **Embeddings**: OpenAI text-embedding-3-large, 3072-dim, cosine
+- **Vector index**: `hang_embedding_index` (ONLINE)
+- **Rel index**: `contains_embedding` (NOT YET - step5 미실행)
 
-- [x] Domain 1 Agent (도시계획 및 이용) - Basic structure
-- [ ] Domain 1 Agent - Full Neo4j integration
-- [ ] Domain 2-5 Agents
-- [ ] QueryCoordinator
-- [ ] Full A2A integration test
-- [ ] Production deployment
+## 5 Domains
 
-## Reference
+| Domain ID | Name | Description |
+|-----------|------|-------------|
+| `land_use_zones` | 용도지역 | 용도지역/지구/구역 (제4장) |
+| `development_activities` | 개발행위 | 개발행위 허가/제한 |
+| `land_transactions` | 토지거래 | 토지거래 허가/제한 |
+| `urban_planning` | 도시계획 및 이용 | 도시계획시설 |
+| `urban_development` | 도시개발 | 도시개발/정비 |
 
-Based on:
-- A2A Protocol: https://a2a.dev
-- Pattern: `agent/a2a/langraph_agent/`
-- Backend: `backend/agents/law/`
+## Upstream Consumers
 
-## License
+이 서버를 호출하는 두 시스템. API 계약 변경 시 반드시 둘 다 업데이트:
 
-MIT
+```
+ACE MCP Server (57 tools)
+  ├── law_search()         → POST /api/search          (direct)
+  ├── law_search_domain()  → POST /api/domain/{id}/search
+  ├── law_domains()        → GET  /api/domains
+  └── law_health()         → GET  /api/health
+
+ARR Django Backend (:8000)
+  ├── /law/search/         → POST /api/search           (proxied, logged)
+  ├── /law/domain/{id}/search/ → POST /api/domain/{id}/search
+  ├── /law/domains/        → GET  /api/domains
+  └── /law/health/         → GET  /api/health
+```
+
+## Pipeline Status (2026-02-23)
+
+| Step | Status | Detail |
+|------|--------|--------|
+| Step1 PDF→JSON | DONE | 3개 법률 파싱 |
+| Step2 JSON→Neo4j | DONE | 1591 HANG, 1053 JO |
+| Step3 Embeddings | DONE | OpenAI 3072-dim |
+| Step4 Domains | DONE | 5 domains, 1 active |
+| Step5 RelEmbeddings | TODO | ~30min, $2-3 |
+
+## Testing
+
+```bash
+# 구조 테스트 (Neo4j 불필요)
+C:/Python313/python tests/test_law_pipeline.py -v
+
+# 통합 테스트 (mock server)
+C:/Python313/python tests/test_law_pipeline_integration.py -v
+
+# 검색 품질 테스트 (Neo4j + server 필요)
+C:/Python313/python tests/test_law_depth.py
+```
+
+## Prerequisites
+
+- Neo4j on `bolt://localhost:7687` (pw: `demodemo`)
+- OPENAI_API_KEY env var
+- Python 3.11+ with `.venv/` dependencies
