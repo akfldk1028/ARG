@@ -1,0 +1,72 @@
+# ============================================================
+# Marketing Agent — 프로젝트 템플릿
+# ============================================================
+# 사용법:
+#   1. 이 파일을 복사: cp _template.yaml {slug}.yaml
+#   2. 아래 필드 채우기
+#   3. 끝. zeroclaw + marketing-agent가 자동으로 인식
+#
+# 채널 자동 매핑 (config.py):
+#   B2C (category가 consumer/entertainment/lifestyle/health/fortune/astrology 등)
+#     → 필수: IG Reels, TikTok, YT Shorts, 네이버블로그, 한국 커뮤니티
+#     → 선택: Twitter, Threads, 뉴스레터
+#   B2B (category가 developer-tools/saas/devops/api/analytics 등)
+#     → 필수: Reddit, HN, Product Hunt, Indie Hackers, Dev.to, 디렉토리
+#     → 선택: LinkedIn, Twitter, YT Shorts, 뉴스레터
+# ============================================================
+
+product:
+  name: ""                    # 제품명
+  tagline: ""                 # 한 줄 설명
+  website: ""                 # https://...
+  docs_url: ""                # 문서 URL (있으면)
+  github_url: ""              # GitHub URL (있으면)
+  category: ""                # ★ B2C/B2B 자동 판별 기준
+  # B2C: consumer, entertainment, lifestyle, health, education, fortune, astrology, gaming, social
+  # B2B: developer-tools, saas, devops, api, infrastructure, analytics, security, productivity, enterprise
+
+audience:
+  primary: ""                 # 주 타겟 ("20-40대 직장인", "백엔드 개발자" 등)
+  secondary: ""               # 보조 타겟
+  pain_points:
+    - ""                      # 해결하는 문제 1
+    - ""                      # 해결하는 문제 2
+  value_props:
+    - ""                      # 핵심 가치 1
+    - ""                      # 핵심 가치 2
+
+brand:
+  tone: "professional-friendly"  # professional-friendly | casual | technical | playful
+  language: "ko"                 # ko | en
+  emoji_policy: "minimal"        # none | minimal | liberal
+
+social:
+  twitter:
+    handle: ""
+    enabled: false
+  linkedin:
+    company_page: ""
+    enabled: false
+  reddit:
+    subreddits: []
+    enabled: false
+
+seo:
+  primary_keywords:
+    - ""                      # 주 키워드 1
+    - ""                      # 주 키워드 2
+  competitor_domains:
+    - ""                      # 경쟁사 도메인
+  target_monthly_posts: 8     # 월 목표 포스트 수
+
+schedule:
+  content_days: [monday, wednesday, friday]
+  social_days: [monday, tuesday, wednesday, thursday, friday]
+  report_day: friday
+  timezone: "Asia/Seoul"
+  cron_interval_hours: 24
+
+integrations:
+  cms: null
+  analytics: null
+  slack_webhook: null

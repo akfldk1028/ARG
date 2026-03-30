@@ -15,6 +15,9 @@ Competitor Analyst (16:00) → competitive intel + briefs
 Performance Analyst (18:00) → daily report
 ```
 
+> **사주(saju) 프로젝트**: 위 스케줄 대신 zeroclaw SOP + n8n 웹훅으로 트리거.
+> 매일 09:30 KST에 zeroclaw가 A2A 서버를 호출하여 콘텐츠 생성 → n8n → 영상 → SNS.
+
 ## Quick Start
 ```bash
 # 1. Initialize a project
@@ -52,23 +55,43 @@ Project resolution order (in agents):
 
 | Agent | Role | Output |
 |-------|------|--------|
-| cmo | Strategy, assignments | schedules/daily.md |
-| content-writer | Blog posts, copy | output/{slug}/content/ |
-| social-media-manager | Social posts | output/{slug}/social/ |
-| performance-analyst | Reports, metrics | output/{slug}/reports/ |
-| keyword-researcher | Keyword discovery | output/{slug}/keywords/ |
-| content-optimizer | SEO audits | output/{slug}/audits/ |
-| competitor-analyst | Competitor briefs | output/{slug}/briefs/ |
+| cmo | Strategy, assignments | `output/{slug}/schedules/{date}-daily-plan.md` |
+| keyword-researcher | Keyword discovery | `output/{slug}/keywords/` |
+| content-writer | Blog posts, copy, scenes | `output/{slug}/content/` |
+| content-optimizer | SEO audits | `output/{slug}/audits/` |
+| social-media-manager | Social posts (IG/TikTok) | `output/{slug}/social/` |
+| competitor-analyst | Competitor briefs | `output/{slug}/briefs/` |
+| performance-analyst | Reports, metrics | `output/{slug}/reports/` |
 
 ## Rules (8)
 brand-voice, cms-schema, image-guidelines, platform-rules, utm-rules,
 keyword-strategy, schema-markup, seo-checklist
 
+## Package Structure
+```
+marketing_agent/           # Python package
+  __init__.py
+  models.py                # Pydantic: Scene, ContentConfig, ContentRequest, ContentResponse
+  templates.py             # 31 saju templates + date rotation
+  generator.py             # ContentGenerator.create() → ContentResponse
+  config.py                # project yaml loader
+  routes/
+    __init__.py            # create_app() factory
+    content.py             # POST /api/content/create, /api/content/audit
+    agent_card.py          # GET /.well-known/agent.json, /health
+    output.py              # GET /output/{project}/{category}
+tests/
+  test_models.py
+  test_templates.py
+  test_generator.py
+  test_api.py
+```
+
 ## A2A Server
-- Port: 9020
+- Port: 9020 (`python a2a_server.py`)
 - Agent card: `GET http://localhost:9020/.well-known/agent.json`
-- 8 skills: create-content, create-social-posts, performance-report, weekly-plan,
-  keyword-research, content-audit, competitor-analysis, content-brief
+- Content API: `POST /api/content/create` → `{title, hashtags, scenes[], config}`
+- Content Audit: `POST /api/content/audit` → pass-through (Phase 1)
 - Multi-project output: `GET /output/{project}/{category}`
 
 ## CLI Tools
@@ -85,7 +108,7 @@ python tools.py post-slack "message"
 ## Directory Convention
 - `projects/` — per-project YAML configs (git-ignored)
 - `output/{slug}/` — generated deliverables (git-ignored)
-- `schedules/` — living documents updated by agents
+- `schedules/` — living template documents (CMO references only)
 - `.claude/agent-memory/{slug}/` — persistent agent state
 - `.claude/rules/` — immutable policies
 - `.claude/agents/` — agent definitions (7 agents)
