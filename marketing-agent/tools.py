@@ -53,6 +53,8 @@ def _load_all_projects() -> list[dict]:
     projects = []
     if projects_dir.is_dir():
         for f in sorted(projects_dir.glob("*.yaml")):
+            if f.stem.startswith("_"):
+                continue
             with open(f, encoding="utf-8") as fh:
                 data = yaml.safe_load(fh) or {}
                 data["_slug"] = f.stem
