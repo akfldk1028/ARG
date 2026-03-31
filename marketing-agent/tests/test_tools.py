@@ -48,7 +48,7 @@ class TestEnvCheck:
             "DEVTO_API_KEY",
             "NAVER_CLIENT_ID", "NAVER_CLIENT_SECRET", "NAVER_BLOG_ACCESS_TOKEN",
             "RESEND_API_KEY",
-            "TWITTER_BEARER_TOKEN",
+            "TWITTER_ACCESS_TOKEN",
             "LINKEDIN_ACCESS_TOKEN", "LINKEDIN_AUTHOR_URN",
         ]
         for k in keys:
@@ -74,7 +74,8 @@ class TestEnvCheck:
         assert "YOUTUBE" in r["error"]
 
     def test_reddit_no_env(self):
-        r = _parse(tools.reddit_comment("hello"))
+        # With parent_id to pass validation, hits env check
+        r = _parse(tools.reddit_comment("hello", parent_id="t3_abc"))
         assert "error" in r
         assert "REDDIT" in r["error"]
 
@@ -96,7 +97,7 @@ class TestEnvCheck:
     def test_twitter_no_env(self):
         r = _parse(tools.twitter_post("hello"))
         assert "error" in r
-        assert "TWITTER" in r["error"]
+        assert "TWITTER_ACCESS_TOKEN" in r["error"]
 
     def test_linkedin_no_env(self):
         r = _parse(tools.linkedin_post("hello"))
@@ -140,7 +141,7 @@ class TestTwitterPost:
     @patch("tools.httpx.post")
     def test_success(self, mock_post):
         mock_post.return_value = _mock_response(201, {"data": {"id": "999"}})
-        with patch.dict(os.environ, {"TWITTER_BEARER_TOKEN": "fake"}):
+        with patch.dict(os.environ, {"TWITTER_ACCESS_TOKEN": "fake"}):
             r = _parse(tools.twitter_post("Hello world"))
         assert r["tweet_id"] == "999"
         assert "999" in r["url"]
@@ -148,7 +149,7 @@ class TestTwitterPost:
     @patch("tools.httpx.post")
     def test_with_reply(self, mock_post):
         mock_post.return_value = _mock_response(201, {"data": {"id": "1000"}})
-        with patch.dict(os.environ, {"TWITTER_BEARER_TOKEN": "fake"}):
+        with patch.dict(os.environ, {"TWITTER_ACCESS_TOKEN": "fake"}):
             tools.twitter_post("reply text", reply_to="888")
         body = mock_post.call_args.kwargs["json"]
         assert body["reply"]["in_reply_to_tweet_id"] == "888"
@@ -207,12 +208,9 @@ class TestRedditComment:
             r = _parse(tools.reddit_comment("great post!", parent_id="t3_xyz"))
         assert mock_post.call_count == 2
 
-    @patch("tools.httpx.post")
-    def test_comment_without_parent_id(self, mock_post):
-        mock_post.return_value = _mock_response(200, {"access_token": "tok"})
-        env = {"REDDIT_CLIENT_ID": "id", "REDDIT_CLIENT_SECRET": "sec", "REDDIT_REFRESH_TOKEN": "ref"}
-        with patch.dict(os.environ, env):
-            r = _parse(tools.reddit_comment("text", kind="comment"))
+    def test_comment_without_parent_id(self):
+        """Validation before OAuth — no network call needed."""
+        r = _parse(tools.reddit_comment("text", kind="comment"))
         assert "error" in r
         assert "parent_id" in r["error"]
 

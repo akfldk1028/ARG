@@ -77,7 +77,7 @@ def _load_page_images() -> list[dict]:
 
 
 @router.post("/trigger", response_model=PipelineResponse)
-async def trigger_pipeline(request: PipelineRequest) -> PipelineResponse:
+def trigger_pipeline(request: PipelineRequest) -> PipelineResponse:
     """Generate content + transform to n8n format + optionally trigger webhook."""
 
     # 1. Generate content

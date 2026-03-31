@@ -384,6 +384,12 @@ def yt_shorts_upload(video_file_path: str, title: str, description: str = "") ->
 
 def reddit_comment(text: str, subreddit: str = "", parent_id: str = "", title: str = "", kind: str = "comment") -> str:
     """Post comment or submission to Reddit via OAuth2."""
+    # Validate params before making any network calls
+    if kind == "comment" and not parent_id:
+        return json.dumps({"error": "comment requires parent_id; self/link requires subreddit"})
+    if kind in ("self", "link") and not subreddit:
+        return json.dumps({"error": "comment requires parent_id; self/link requires subreddit"})
+
     client_id = os.environ.get("REDDIT_CLIENT_ID")
     client_secret = os.environ.get("REDDIT_CLIENT_SECRET")
     refresh_token = os.environ.get("REDDIT_REFRESH_TOKEN")
@@ -403,22 +409,20 @@ def reddit_comment(text: str, subreddit: str = "", parent_id: str = "", title: s
     access_token = auth_resp.json().get("access_token")
     headers = {"Authorization": f"bearer {access_token}", "User-Agent": "marketing-agent/1.0"}
 
-    if kind == "comment" and parent_id:
+    if kind == "comment":
         resp = httpx.post(
             "https://oauth.reddit.com/api/comment",
             headers=headers,
             data={"thing_id": parent_id, "text": text},
             timeout=15,
         )
-    elif kind in ("self", "link") and subreddit:
+    else:
         payload = {"sr": subreddit, "kind": kind, "title": title or text[:100]}
         if kind == "self":
             payload["text"] = text
         else:
             payload["url"] = text
         resp = httpx.post("https://oauth.reddit.com/api/submit", headers=headers, data=payload, timeout=15)
-    else:
-        return json.dumps({"error": "comment requires parent_id; self/link requires subreddit"})
 
     if resp.status_code != 200:
         return json.dumps({"error": f"Reddit failed ({resp.status_code})", "detail": resp.text})
@@ -515,10 +519,10 @@ def directory_submit(directory_name: str, product_name: str, product_url: str, d
 
 
 def twitter_post(text: str, reply_to: str = "") -> str:
-    """Post tweet via Twitter/X API v2 (OAuth 2.0 User Context)."""
-    token = os.environ.get("TWITTER_BEARER_TOKEN")
+    """Post tweet via Twitter/X API v2. Requires OAuth 2.0 user access token (not app-only bearer)."""
+    token = os.environ.get("TWITTER_ACCESS_TOKEN") or os.environ.get("TWITTER_BEARER_TOKEN")
     if not token:
-        return json.dumps({"error": "TWITTER_BEARER_TOKEN required in .env"})
+        return json.dumps({"error": "TWITTER_ACCESS_TOKEN required in .env (OAuth 2.0 user token, not app-only bearer)"})
 
     payload: dict = {"text": text}
     if reply_to:
